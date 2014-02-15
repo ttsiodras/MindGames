@@ -1,0 +1,6 @@
+bin.debug
+bin.release
+deps.debug
+deps.release
+objs.debug
+objs.release

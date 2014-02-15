@@ -1,11 +1,14 @@
-CXX=clang++
+# Template copied from my article about Makefiles, at:
+#     http://ttsiodras.github.io/makefile.html
+
+#CXX=clang++
 
 # The directories containing the source files, separated by ':'
-VPATH=src:../Library
+VPATH=src
 
-# To make "debug" the default configuration if invoked with just "make":
+# To make "release" the default configuration if invoked with just "make":
 ifeq ($(CFG),)
-CFG=debug
+CFG=release
 endif
 
 # The source files: regardless of where they reside in the source tree,
@@ -19,14 +22,14 @@ Group0_DEP = $(patsubst %.cpp, deps.$(CFG)/Group0_%.d, ${Group0_SRC})
 Group0_OBJ = $(patsubst %.cpp, objs.$(CFG)/Group0_%.o, ${Group0_SRC})
 
 # Your final binary
-TARGET=applicationName
+TARGET=swapBishops
 
 # What compiler to use for generating dependencies: 
 # it will be invoked with -MM -MP
-CXXDEP = g++
+CXXDEP = g++ -std=c++11
 
 # What include flags to pass to the compiler
-INCLUDEFLAGS= -I ../Library -I src
+INCLUDEFLAGS= -I src
 
 CXXFLAGS += -std=c++11
 
@@ -38,7 +41,7 @@ CXXFLAGS += -O2 -Wall ${INCLUDEFLAGS}
 endif
 
 # A common link flag for all configurations
-LDFLAGS += -lSDL
+LDFLAGS +=
 
 all:	inform bin.$(CFG)/${TARGET}
 
@@ -71,14 +74,25 @@ deps.$(CFG)/Group0_%.d: %.cpp
 	sed 's,\($*\)\.o[ :]*,objs.$(CFG)\/Group0_\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
+.PHONY:	clean release debug test benchmark
+
 clean:
 	@rm -rf \
 	deps.debug objs.debug bin.debug \
 	deps.release objs.release bin.release
 
-test:
-	$(MAKE) || exit 1
-	bin.$(CFG)/$(TARGET)
+release:
+	$(MAKE) CFG=release
+
+debug:
+	$(MAKE) CFG=debug
+
+test:	| release
+	bin.release/$(TARGET)
+
+benchmark:
+	@$(MAKE) CFG=release || exit 1
+	@./contrib/benchmark.sh
 
 # Unless "make clean" is called, include the dependency files
 # which are auto-generated. Don't fail if they are missing
