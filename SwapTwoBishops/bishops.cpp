@@ -38,12 +38,31 @@ map<int, set<int>> g_threats = {
     {9, {6,3,0,7}     },
 };
 
+map<tuple<int, int>, list<int>> g_checkEmpty = {
+    {make_tuple(0,6), {3}},
+    {make_tuple(0,9), {3,6}},
+    {make_tuple(1,5), {3}},
+    {make_tuple(1,7), {4}},
+    {make_tuple(2,6), {4}},
+    {make_tuple(2,8), {4,6}},
+    {make_tuple(3,9), {6}},
+    {make_tuple(4,8), {6}},
+    {make_tuple(5,1), {3}},
+    {make_tuple(6,0), {3}},
+    {make_tuple(6,2), {4}},
+    {make_tuple(7,1), {4}},
+    {make_tuple(8,4), {6}},
+    {make_tuple(8,2), {6,4}},
+    {make_tuple(9,0), {6,3}},
+    {make_tuple(9,3), {6}},
+};
+
 bool threatens(int i, int j)
 {
     return g_threats[i].count(j) == 1;
 }
 
-// We'll brute force our way via a breadth-first-search
+// We'll brute force our way via a depth-first-search
 // of board states, until we have tiles 2,7 containing White
 // and tiles 0,5 containing Black.
 //
@@ -109,6 +128,18 @@ void solve(const Board& board)
     for(auto& w: g_threats[w1]) {
         if (w == w2 || w == b1 || w == b2) continue;
         if (threatens(b1,w) || threatens(b2,w)) continue;
+        auto it = g_checkEmpty.find(make_tuple(w1, w));
+        if (it != g_checkEmpty.end()) {
+            bool canMove = true;
+            for(auto& c: it->second) {
+                if (c == w2 || c == b1 || c == b2) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (!canMove)
+                continue;
+        }
         auto boardNew = Board({w, w2, b1, b2});
         if (g_visited.count(boardNew)) continue;
         g_moves.push_back(boardNew);
@@ -118,6 +149,18 @@ void solve(const Board& board)
     for(auto& w: g_threats[w2]) {
         if (w == w1 || w == b1 || w == b2) continue;
         if (threatens(b1,w) || threatens(b2,w)) continue;
+        auto it = g_checkEmpty.find(make_tuple(w2, w));
+        if (it != g_checkEmpty.end()) {
+            bool canMove = true;
+            for(auto& c: it->second) {
+                if (c == w1 || c == b1 || c == b2) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (!canMove)
+                continue;
+        }
         auto boardNew = Board({w1, w, b1, b2});
         if (g_visited.count(boardNew)) continue;
         g_moves.push_back(boardNew);
@@ -127,6 +170,18 @@ void solve(const Board& board)
     for(auto& b: g_threats[b1]) {
         if (b == b2 || b == w1 || b == w2) continue;
         if (threatens(b,w1) || threatens(b,w2)) continue;
+        auto it = g_checkEmpty.find(make_tuple(b1, b));
+        if (it != g_checkEmpty.end()) {
+            bool canMove = true;
+            for(auto& c: it->second) {
+                if (c == b2 || c == w1 || c == w2) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (!canMove)
+                continue;
+        }
         auto boardNew = Board({w1, w2, b, b2});
         if (g_visited.count(boardNew)) continue;
         g_moves.push_back(boardNew);
@@ -136,6 +191,18 @@ void solve(const Board& board)
     for(auto& b: g_threats[b2]) {
         if (b == b1 || b == w1 || b == w2) continue;
         if (threatens(b,w1) || threatens(b,w2)) continue;
+        auto it = g_checkEmpty.find(make_tuple(b2, b));
+        if (it != g_checkEmpty.end()) {
+            bool canMove = true;
+            for(auto& c: it->second) {
+                if (c == b1 || c == w1 || c == w2) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (!canMove)
+                continue;
+        }
         auto boardNew = Board({w1, w2, b1, b});
         if (g_visited.count(boardNew)) continue;
         g_moves.push_back(boardNew);
